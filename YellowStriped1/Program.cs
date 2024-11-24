@@ -1,71 +1,71 @@
 ﻿using System;
-using System.Collections.Generic;
 
-class Program
+public class Program
 {
-    //Character class definitions.
-    public class Character
+    public static void Main()
     {
-        public string Name { get; set; }
-        public int Health { get; set; }
-        public Action PrimaryAction { get; set; }
+        var warrior = new Character("Warrior", 45);
+        var healer = new Character("Healer", 40);
 
-        public Character(string name, int health, Action _PrimaryAction)
-        {
-            Name = name;
-            Health = health;
-            PrimaryAction = _PrimaryAction;
-        }
+        // Role specific actions
+        warrior.PrimaryAction = () => warrior.Attack();
+        healer.PrimaryAction = () => healer.Heal(warrior);
 
-        public void ExecuteAction()
-        {
-            PrimaryAction?.Invoke();
-        }
+        // Gameloop, checks health
+        GameLoop(warrior, healer);
     }
 
-    static void Main(string[] args)
+    // Gameloop, choice to attack or heal.
+    public static void GameLoop(Character warrior, Character healer)
     {
-        //Warrior class with the ability to attack with sword.
-        var warrior = new Character("Warrior", 40, () =>
+        // Classic battle round setup
+        for (int round = 1; round <= 5; round++)
         {
-            Console.WriteLine("Warrior attacks with sword!");
-        });
-        //Healer class with the ability to heal.
-        var healer = new Character("Healer", 60, () =>
-        {
-            Console.WriteLine("Healer casts healing spell!");
-        });
-        //Characters in party.
-        var characters = new List<Character> { warrior, healer };
-        //This is for knowing when the characters are going to do the right actions, in this case it is based on what health the actions is going to execute.
-        foreach (var character in characters)
-        {
-            if (character.Health < 50)
+            Console.WriteLine($"\n--- Round {round} ---");
+            
+            // If health is below 50, Warrior will attack.
+            if (warrior.Health < 50)
             {
-                //If health is below 50, the warrior will attack and the healer will heal. 
-                if (character.Name == "Warrior")
-                {
-                    // The warrior will also attack if the warriors heatlth is low. 
-                    Console.WriteLine($"{character.Name} is low on health ({character.Health}) and chooses to attack!");
-                    character.ExecuteAction();
-                }
-                else if (character.Name == "Healer")
-                {
-                    var target = characters.Find(c => c != character && c.Health < 50);
-                    if (target != null)
-                    {
-                        //The healer will heal the lowest health character. 
-                        Console.WriteLine($"{character.Name} notices {target.Name} is low on health and heals them!");
-                        character.ExecuteAction();
-                    }
-                }
+                Console.WriteLine($"{warrior.Name} decides to attack!");
+                warrior.PrimaryAction.Invoke();
             }
-            else
+
+            // Healer will heal the one with lowest health if their health is below 50
+            if (healer.Health < 50)
             {
-                //Regular actions will be executed if health is above 50. 
-                Console.WriteLine($"{character.Name} is healthy ({character.Health}) and performs a regular action.");
-                character.ExecuteAction();
+                Console.WriteLine($"{healer.Name} decides to heal the character with lowest health!");
+                healer.PrimaryAction.Invoke();
             }
+
+            // Checks health after actions.
+            Console.WriteLine($"Warrior's Health: {warrior.Health}");
+            Console.WriteLine($"Healer's Health: {healer.Health}");
         }
+    }
+}
+public class Character
+{
+    public string Name { get; set; }
+    public int Health { get; set; }
+    public Action PrimaryAction { get; set; }
+
+    public Character(string name, int health)
+    {
+        Name = name;
+        Health = health;
+    }
+
+    // Warrior attack method
+    public void Attack()
+    {
+        Console.WriteLine($"{Name} attacks!");
+        Health -= 10;
+    }
+
+    // Healer heal method
+    public void Heal(Character target)
+    {
+        Console.WriteLine($"{Name} heals {target.Name}!");
+        target.Health += 15;
     }
 }
